@@ -1,0 +1,1 @@
+package com.maemresen.datamining.project.similarity.detector;
