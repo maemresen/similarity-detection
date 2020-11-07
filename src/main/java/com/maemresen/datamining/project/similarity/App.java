@@ -19,113 +19,114 @@ import gnu.getopt.Getopt;
 
 /**
  * Entry point of application.
- * 
+ *
  * @author Emre Sen - Apr 1, 2019
  * @contact maemresen07@gmail.com
- *
  */
 public class App {
 
-	private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(App.class);
 
-	private static boolean detailed = false;
-	private static double cheatThreashold = 0.4;
-
-	
-	public static boolean isDetailed() {
-		return detailed;
-	}
+    private static boolean detailed = false;
+    private static double cheatThreashold = 0.4;
 
 
-	public static void main(String[] argv) {
+    public static boolean isDetailed() {
+        return detailed;
+    }
 
-		Getopt g = new Getopt("testprog", argv, "hdt:");
 
-		int c;
-		while ((c = g.getopt()) != -1) {
-			switch (c) {
-			case 'h':
-				LOGGER.info("\n\n Usage: java -jar similarity.jar [-d] [-t <cheat_threshold>]"
-						+ "\n\n\t -d\tDetailed printout. To print each distance found"
-						+ "\n\n\t -t\tCheat Threashold, if two answers has distince lower than threashold than it is a cheat."
-						+ "\n\t   \tDefault Value: 0.4");
-				
-				System.exit(0);
-			case 'd':
-				detailed = true;
-				break;
-			case 't':
-				try {
-					cheatThreashold = Double.parseDouble(g.getOptarg());
-				} catch (NumberFormatException ex) {
-					LOGGER.error("Invalid Format");
-					System.exit(1);
-				}
+    public static void main(String[] argv) {
 
-				break;
-			case '?':
-				LOGGER.error("Invalid Argument");
-				System.exit(1);
-				break;
-			//
-			default:
-			}
-		}
+        Getopt g = new Getopt("testprog", argv, "hdt:");
 
-		List<Homework> homeworkList = Arrays.asList(
-				// initialize each homework
-				DataLoader.loadStudentHw("HW1", "/hwdata/hwdata1.xls"),
-				DataLoader.loadStudentHw("HW2", "/hwdata/hwdata2.xls"),
-				DataLoader.loadStudentHw("HW3", "/hwdata/hwdata3.xls"));
+        int c;
+        while ((c = g.getopt()) != -1) {
+            switch (c) {
+                case 'h':
+                    LOGGER.info("\n\n Usage: java -jar similarity.jar [-d] [-t <cheat_threshold>]"
+                            + "\n\n\t -d\tDetailed printout. To print each distance found"
+                            + "\n\n\t -t\tCheat Threashold, if two answers has distince lower than threashold than it is a cheat."
+                            + "\n\t   \tDefault Value: 0.4");
 
-		// Different Implementations of CheatDetector with different similarity
-		// algorithms to test
-		List<CheatDetector> cheatDetectorList = Arrays.asList(new NormalizedLevenshteinCheatDetector(),
-				new JaccardCheatDetector());
+                    System.exit(0);
+                case 'd':
+                    detailed = true;
+                    break;
+                case 't':
+                    try {
+                        cheatThreashold = Double.parseDouble(g.getOptarg());
+                    } catch (NumberFormatException ex) {
+                        LOGGER.error("Invalid Format");
+                        System.exit(1);
+                    }
 
-		homeworkList.forEach((homework) -> { // iterate over each homework
-			LOGGER.info("===================================================");
-			LOGGER.info("Homework: {}", homework.getHomeworkName());
-			LOGGER.info("===================================================");
+                    break;
+                case '?':
+                    LOGGER.error("Invalid Argument");
+                    System.exit(1);
+                    break;
+                //
+                default:
+            }
+        }
 
-			cheatDetectorList.forEach((cheatDetector) -> { // iterate over each
-															// cheat detecter
-															// defined above to
-															// test
-				TimeUtil.stopWatch(() -> {
-					LOGGER.info("");
-					LOGGER.info(cheatDetector.getDetectorName());
-					LOGGER.info("--------------------------------------------");
-					LOGGER.info("Calculating Distances");
-					LOGGER.info("--------------------------------------------");
-					List<CheatDetectionResult> cheatDetectionResultList = cheatDetector.calculateDistances(homework);
-					LOGGER.info("--------------------------------------------");
-					LOGGER.info("Filtering Cheats");
-					LOGGER.info("--------------------------------------------");
+        List<Homework> homeworkList = Arrays.asList(
+                // initialize each homework
+                DataLoader.loadStudentHw("HW1", "/hwdata/hwdata1.xls"),
+                DataLoader.loadStudentHw("HW2", "/hwdata/hwdata2.xls"),
+                DataLoader.loadStudentHw("HW3", "/hwdata/hwdata3.xls"));
 
-					cheatDetectionResultList.stream() // get stream of the result
-													// list
+        // Different Implementations of CheatDetector with different similarity
+        // algorithms to test
+        List<CheatDetector> cheatDetectorList = Arrays.asList(
+                new NormalizedLevenshteinCheatDetector()
+                , new JaccardCheatDetector()
+        );
 
-							// apply filter (eliminate values greater than
-							// cheatThreashold)
-							.filter(cheatDetectorResult -> cheatDetectorResult.getValue() < cheatThreashold)
+        homeworkList.forEach((homework) -> { // iterate over each homework
+            LOGGER.info("===================================================");
+            LOGGER.info("Homework: {}", homework.getHomeworkName());
+            LOGGER.info("===================================================");
 
-							// collect filtered results as list
-							.collect(Collectors.toList())
+            cheatDetectorList.forEach((cheatDetector) -> { // iterate over each
+                // cheat detecter
+                // defined above to
+                // test
+                TimeUtil.stopWatch(() -> {
+                    LOGGER.info("");
+                    LOGGER.info(cheatDetector.getDetectorName());
+                    LOGGER.info("--------------------------------------------");
+                    LOGGER.info("Calculating Distances");
+                    LOGGER.info("--------------------------------------------");
+                    List<CheatDetectionResult> cheatDetectionResultList = cheatDetector.calculateDistances(homework);
+                    LOGGER.info("--------------------------------------------");
+                    LOGGER.info("Filtering Cheats");
+                    LOGGER.info("--------------------------------------------");
 
-							// iterate over each
-							.forEach((cheatDetectionResult) -> {
-								LOGGER.info("Cheat Detected: Distance=[{}], Student1Id=[{}], Student2Id=[{}]",
-										cheatDetectionResult.getValue(), cheatDetectionResult.getAnswer1().getStudentId(),
-										cheatDetectionResult.getAnswer2().getStudentId());
-							});
-					LOGGER.info("--------------------------------------------");
-				});
-				LOGGER.info("");
-			});
-			LOGGER.info("");
-		});
+                    cheatDetectionResultList.stream() // get stream of the result
+                            // list
 
-	}
+                            // apply filter (eliminate values greater than
+                            // cheatThreashold)
+                            .filter(cheatDetectorResult -> cheatDetectorResult.getValue() < cheatThreashold)
+
+                            // collect filtered results as list
+                            .collect(Collectors.toList())
+
+                            // iterate over each
+                            .forEach((cheatDetectionResult) -> {
+                                LOGGER.info("Cheat Detected: Distance=[{}], Student1Id=[{}], Student2Id=[{}]",
+                                        cheatDetectionResult.getValue(), cheatDetectionResult.getAnswer1().getStudentId(),
+                                        cheatDetectionResult.getAnswer2().getStudentId());
+                            });
+                    LOGGER.info("--------------------------------------------");
+                });
+                LOGGER.info("");
+            });
+            LOGGER.info("");
+        });
+
+    }
 
 }

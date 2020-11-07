@@ -19,4 +19,3 @@ Usage: java -jar similarity.jar [-d] [-t <cheat_threshold>]
     -t  Cheat Threashold. If two answers has distince lower than threashold than it is a cheat.
         Default Value: 0.4
 ````
-
