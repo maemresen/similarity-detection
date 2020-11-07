@@ -90,7 +90,7 @@ public class App {
             LOGGER.info("===================================================");
 
             cheatDetectorList.forEach((cheatDetector) -> { // iterate over each
-                // cheat detecter
+                // cheat detector
                 // defined above to
                 // test
                 TimeUtil.stopWatch(() -> {
